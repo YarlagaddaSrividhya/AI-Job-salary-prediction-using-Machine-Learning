@@ -1,174 +1,261 @@
-
 import streamlit as st
 import pandas as pd
 import joblib
 
-
-# --------------------------------------------------
-# Page Configuration
-# --------------------------------------------------
-
+# ---------------------------------------------------------
+# PAGE CONFIGURATION
+# ---------------------------------------------------------
 st.set_page_config(
     page_title="AI Job Salary Prediction",
-    page_icon="💰",
+    page_icon="💼",
     layout="wide"
 )
 
+st.title("💼 AI Job Salary Prediction")
+st.write("Enter the job details below to predict the salary.")
 
-# --------------------------------------------------
-# Load Model
-# --------------------------------------------------
+# ---------------------------------------------------------
+# LOAD TRAINED MODEL
+# ---------------------------------------------------------
+model = joblib.load("salary_prediction_model (1).pkl")
 
-model = joblib.load("salary_prediction_model.pkl")
+# ---------------------------------------------------------
+# SKILL COLUMNS
+# These are the EXACT columns used in your dataset/model
+# ---------------------------------------------------------
+skill_columns = [
+    'skill_AWS',
+    'skill_Azure',
+    'skill_Computer Vision',
+    'skill_Data Visualization',
+    'skill_Deep Learning',
+    'skill_Docker',
+    'skill_GCP',
+    'skill_Git',
+    'skill_Hadoop',
+    'skill_Java',
+    'skill_Kubernetes',
+    'skill_Linux',
+    'skill_MLOps',
+    'skill_Mathematics',
+    'skill_NLP',
+    'skill_PyTorch',
+    'skill_Python',
+    'skill_R',
+    'skill_SQL',
+    'skill_Scala',
+    'skill_Spark',
+    'skill_Statistics',
+    'skill_Tableau',
+    'skill_TensorFlow'
+]
 
+# ---------------------------------------------------------
+# SIDEBAR - JOB INFORMATION
+# ---------------------------------------------------------
+st.sidebar.header("Job Information")
 
-# --------------------------------------------------
-# Title
-# --------------------------------------------------
-
-st.title("💰 AI Job Salary Prediction")
-st.write(
-    "Enter the job details below to predict the expected salary."
+job_title = st.sidebar.text_input(
+    "Job Title",
+    value="AI Research Scientist"
 )
 
-st.divider()
+employment_type = st.sidebar.selectbox(
+    "Employment Type",
+    ["FT", "PT", "CT", "FL"]
+)
 
+company_location = st.sidebar.text_input(
+    "Company Location",
+    value="United States"
+)
 
-# --------------------------------------------------
-# Input Fields
-# --------------------------------------------------
+company_name = st.sidebar.text_input(
+    "Company Name",
+    value="Tech Company"
+)
+
+employee_residence = st.sidebar.text_input(
+    "Employee Residence",
+    value="United States"
+)
+
+industry = st.sidebar.text_input(
+    "Industry",
+    value="Technology"
+)
+
+experience_level = st.sidebar.selectbox(
+    "Experience Level",
+    ["EN", "MI", "SE", "EX"]
+)
+
+company_size = st.sidebar.selectbox(
+    "Company Size",
+    ["S", "M", "L"]
+)
+
+education_required = st.sidebar.selectbox(
+    "Education Required",
+    [
+        "Bachelor",
+        "Master",
+        "PhD",
+        "Associate"
+    ]
+)
+
+# ---------------------------------------------------------
+# NUMERICAL FEATURES
+# ---------------------------------------------------------
+st.sidebar.header("Job Details")
+
+years_experience = st.sidebar.number_input(
+    "Years of Experience",
+    min_value=0,
+    max_value=50,
+    value=2,
+    step=1
+)
+
+remote_ratio = st.sidebar.slider(
+    "Remote Ratio",
+    min_value=0,
+    max_value=100,
+    value=50,
+    step=10
+)
+
+job_description_length = st.sidebar.number_input(
+    "Job Description Length",
+    min_value=0,
+    value=1000,
+    step=100
+)
+
+benefits_score = st.sidebar.number_input(
+    "Benefits Score",
+    min_value=0.0,
+    max_value=10.0,
+    value=5.0,
+    step=0.1
+)
+
+# ---------------------------------------------------------
+# SKILLS
+# ---------------------------------------------------------
+st.sidebar.header("Skills")
+
+skill_values = {}
+
+for skill in skill_columns:
+
+    # Remove "skill_" only for displaying checkbox name
+    display_name = skill.replace("skill_", "")
+
+    skill_values[skill] = int(
+        st.sidebar.checkbox(display_name)
+    )
+
+# ---------------------------------------------------------
+# CREATE INPUT DATA
+# ---------------------------------------------------------
+input_data = {
+    "job_title": job_title,
+    "employment_type": employment_type,
+    "company_location": company_location,
+    "company_name": company_name,
+    "employee_residence": employee_residence,
+    "industry": industry,
+    "experience_level": experience_level,
+    "company_size": company_size,
+    "education_required": education_required,
+
+    "years_experience": years_experience,
+    "job_description_length": job_description_length,
+    "benefits_score": benefits_score,
+    "remote_ratio": remote_ratio
+}
+
+# Add the 24 skill columns
+input_data.update(skill_values)
+
+# Convert to DataFrame
+input_df = pd.DataFrame([input_data])
+
+# ---------------------------------------------------------
+# SHOW INPUT DATA
+# ---------------------------------------------------------
+st.subheader("Input Information")
 
 col1, col2 = st.columns(2)
 
-
 with col1:
+    st.write("### Job Details")
 
-    job_title = st.text_input(
-        "Job Title",
-        placeholder="Example: Data Scientist"
-    )
-
-    experience_level = st.selectbox(
-        "Experience Level",
-        ["EN", "MI", "SE", "EX"]
-    )
-
-    employment_type = st.selectbox(
-        "Employment Type",
-        ["Full-time", "Part-time", "Contract", "Freelance"]
-    )
-
-    company_location = st.text_input(
-        "Company Location",
-        placeholder="Example: United States"
-    )
-
-    company_size = st.selectbox(
-        "Company Size",
-        ["Small", "Medium", "Large"]
-    )
-
-    company_name = st.text_input(
-        "Company Name",
-        placeholder="Example: ABC Company"
-    )
-
-    employee_residence = st.text_input(
-        "Employee Residence",
-        placeholder="Example: United States"
-    )
-
+    st.write(f"**Job Title:** {job_title}")
+    st.write(f"**Experience Level:** {experience_level}")
+    st.write(f"**Employment Type:** {employment_type}")
+    st.write(f"**Company:** {company_name}")
+    st.write(f"**Industry:** {industry}")
 
 with col2:
+    st.write("### Experience & Work")
 
-    education_required = st.selectbox(
-        "Education Required",
-        ["Associate", "Bachelor", "Master", "PhD"]
-    )
+    st.write(f"**Years of Experience:** {years_experience}")
+    st.write(f"**Remote Ratio:** {remote_ratio}%")
+    st.write(f"**Education:** {education_required}")
+    st.write(f"**Company Size:** {company_size}")
 
-    years_experience = st.number_input(
-        "Years of Experience",
-        min_value=0,
-        max_value=50,
-        value=2
-    )
+# ---------------------------------------------------------
+# SELECTED SKILLS
+# ---------------------------------------------------------
+selected_skills = [
+    skill.replace("skill_", "")
+    for skill, value in skill_values.items()
+    if value == 1
+]
 
-    required_skills = st.text_input(
-        "Required Skills",
-        placeholder="Python, SQL, Machine Learning"
-    )
+st.write("### Selected Skills")
 
-    job_description_length = st.number_input(
-        "Job Description Length",
-        min_value=0,
-        value=1000
-    )
+if selected_skills:
+    st.write(", ".join(selected_skills))
+else:
+    st.write("No skills selected.")
 
-    industry = st.text_input(
-        "Industry",
-        placeholder="Example: Technology"
-    )
-
-    remote_ratio = st.selectbox(
-        "Remote Ratio",
-        [0, 50, 100]
-    )
-
-    benefits_score = st.number_input(
-        "Benefits Score",
-        min_value=0.0,
-        max_value=10.0,
-        value=5.0
-    )
-
-    salary_currency = st.selectbox(
-        "Salary Currency",
-        ["USD", "EUR", "GBP", "CAD", "AUD"]
-    )
-
-
-# --------------------------------------------------
-# Prediction Button
-# --------------------------------------------------
-
+# ---------------------------------------------------------
+# PREDICTION
+# ---------------------------------------------------------
 st.divider()
 
-if st.button("🔮 Predict Salary", type="primary"):
+if st.button(
+    "💰 Predict Salary",
+    use_container_width=True
+):
 
-    # Create input dataframe
-    input_data = pd.DataFrame({
-        "job_title": [job_title],
-        "experience_level": [experience_level],
-        "employment_type": [employment_type],
-        "company_location": [company_location],
-        "company_size": [company_size],
-        "company_name": [company_name],
-        "employee_residence": [employee_residence],
-        "education_required": [education_required],
-        "years_experience": [years_experience],
-        "required_skills": [required_skills],
-        "job_description_length": [job_description_length],
-        "industry": [industry],
-        "remote_ratio": [remote_ratio],
-        "benefits_score": [benefits_score],
-        "salary_currency": [salary_currency]
-    })
+    try:
 
+        prediction = model.predict(input_df)[0]
 
-    # Predict salary
-    prediction = model.predict(input_data)[0]
+        st.success(
+            f"### 💰 Predicted Salary: ${prediction:,.2f}"
+        )
 
+    except Exception as e:
 
-    # Display result
-    st.success("Salary Prediction Completed!")
+        st.error(
+            "Prediction failed. Please check that the input "
+            "columns match the columns used when training the model."
+        )
 
-    st.metric(
-        label="Predicted Salary",
-        value=f"${prediction:,.2f}"
+        st.exception(e)
+
+# ---------------------------------------------------------
+# OPTIONAL: SHOW MODEL INPUT
+# ---------------------------------------------------------
+with st.expander("View Model Input"):
+
+    st.dataframe(
+        input_df,
+        use_container_width=True
     )
-
-    st.info(
-        "The predicted salary is an estimated value based on the "
-        "information provided."
-    )
-
